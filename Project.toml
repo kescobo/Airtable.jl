@@ -1,0 +1,7 @@
+name = "Airtable"
+uuid = "96f7d883-6668-4fbe-bb01-b60427b16035"
+authors = ["Kevin Bonham", "PhD <kevbonham@gmail.com> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1.5"
