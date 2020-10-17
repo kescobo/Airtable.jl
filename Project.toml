@@ -3,5 +3,8 @@ uuid = "96f7d883-6668-4fbe-bb01-b60427b16035"
 authors = ["Kevin Bonham", "PhD <kevbonham@gmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
+
 [compat]
 julia = "1.5"
