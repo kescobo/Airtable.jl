@@ -2,6 +2,8 @@
 CurrentModule = Airtable
 ```
 
+```@example api
+```
 # Airtable
 
 An (unofficial) API for interacting with the [Airtable](http://www.airtable.com) API.
