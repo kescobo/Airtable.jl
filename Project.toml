@@ -1,6 +1,6 @@
 name = "Airtable"
 uuid = "96f7d883-6668-4fbe-bb01-b60427b16035"
-authors = ["Kevin Bonham", "PhD <kevbonham@gmail.com> and contributors"]
+authors = ["Kevin Bonham PhD <kevbonham@gmail.com>", "contributors"]
 version = "0.1.0"
 
 [deps]
@@ -9,3 +9,5 @@ JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
 
 [compat]
 julia = "1.5"
+HTTP = "0.8"
+JSON3 = "1"

@@ -18,5 +18,6 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/kescobo/Airtable.jl",
-    devbranch="main"
+    devbranch="main",
+    push_preview=true,
 )
