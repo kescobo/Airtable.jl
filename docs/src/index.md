@@ -34,7 +34,7 @@ To obtain your API key, go to your [account settings page](https://airtable.com/
 and click on the "generate API key" button.
 If you previously made a key, you can regenerate it, or just copy the one that's there.
 
-![Get airtable API key]()
+![Get airtable API key](img/api-key.png)
 
 You can then create an [`Airtable.Credential`](@ref) using that key as a string,
 or set it as an environmental variable (`AIRTABLE_KEY` by default).
