@@ -35,6 +35,8 @@ jobs:
             ${{ runner.os }}-
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
+        env:
+          AIRTABLE_KEY: $${{ secrets.AIRTABLE_KEY  }}
       - uses: julia-actions/julia-uploadcoveralls@v1
         env:
           COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}

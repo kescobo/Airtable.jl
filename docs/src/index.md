@@ -78,7 +78,7 @@ and parses the returned data with [`JSON3.jl`](https://github.com/quinnj/JSON3.j
 The following examples use [this airtable base](https://airtable.com/shrx4BWLV1HurniFD),
 which has the ID "appphImnhJO8AXmmo", and the API key described above.
 To run this code, you will need to substitute the API key and ID
-from your own base. 
+from your own base.
 These examples only scratch the surface -
 much more information is available in the API documentation for your own base.
 
