@@ -8,6 +8,8 @@ Go to [Airtable account settings](https://airtable.com/account)
 to aquire your credentials.
 
 ```jldoctest api
+julia> using Airtable
+
 # after running `export AIRTABLE_KEY=<api key>` in the shell
 julia> key = Airtable.Credential()
 Airtable.Credential(<secrets>)
