@@ -90,8 +90,8 @@ request
 
 ### Retrieve records
 
-```jldoctest api
-julia> using Airtable; key=Airtable.Credential();
+```jldoctest api; setup = :(using Airtable)
+julia> key=Airtable.Credential();
 
 julia> req1 = Airtable.request("GET", key, "appphImnhJO8AXmmo", "Table 1"; maxRecords=2)
 JSON3.Object{Base.CodeUnits{UInt8, String}, Vector{UInt64}} with 1 entry:
