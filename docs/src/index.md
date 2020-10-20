@@ -2,8 +2,6 @@
 CurrentModule = Airtable
 ```
 
-```@example api
-```
 # Airtable
 
 An (unofficial) API for interacting with the [Airtable](http://www.airtable.com) API.
@@ -25,12 +23,12 @@ documentation, which is generated automatically for you using your actual tables
 
 Most functions require 4 parts:
 
-1. a [`Credential`](@ref), which stores your [API key](@ref)
-2. a [Base ID](@ref)
+1. a [`Credential`](@ref), which stores your [API key](@ref apikey)
+2. a [Base ID](@ref baseid)
 3. [a `tablename`](@ref Tablename) - which refers to the specific table from your base
-4. an [API query](@ref), in the form of keyword arguments
+4. an [API query](@ref apiquery), in the form of keyword arguments
 
-### API key
+### [API key](@id apikey)
 
 To obtain your API key, go to your [account settings page](https://airtable.com/account)
 and click on the "generate API key" button.
@@ -45,7 +43,7 @@ or set it as an environmental variable (`AIRTABLE_KEY` by default).
 Credential
 ```
 
-### Base ID
+### [Base ID](@id baseid)
 
 Open your airtable base, click the help button in the upper right,
 and then click "API documentation".
@@ -64,11 +62,11 @@ Within each base, you may have multiple tables.
 The `tablename` argument in the following functions is just a string
 with the table name, eg `"Table 1"`.
 
-### API Query
+### [API Query](@id apiquery)
 
 Use keyword arguments to add commponents to the API request body.
 For example, if you want a `GET` request to only contain the `Name` field,
-you could include `; fields=["Name"]` keyword argument to the [`get`](@ref)
+you could include `; fields=["Name"]` keyword argument to the [`Airtable.get`](@ref)
 function.
 
 ## Interface
@@ -152,3 +150,14 @@ query
 
 I haven't actually figured this out yet 🤔.
 If you want to help, let me know!
+
+### Other functions
+
+Here are some shorthands for `GET`, `POST`, `PATCH`, and `PUT`.
+
+```@docs
+get
+post
+patch
+put
+```
