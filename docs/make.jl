@@ -1,8 +1,6 @@
 using Airtable
 using Documenter
 
-DocMeta.setdocmeta!(Airtable, :DocTestSetup, :(using Airtable); recursive=true)
-
 makedocs(;
     modules=[Airtable],
     authors="Kevin Bonham, PhD <kevbonham@gmail.com> and contributors",
