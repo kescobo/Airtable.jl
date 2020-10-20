@@ -19,7 +19,7 @@ jobs:
           - x64
     steps:
       - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/setup-julia@latest
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
@@ -33,11 +33,11 @@ jobs:
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
             ${{ runner.os }}-
-      - uses: julia-actions/julia-buildpkg@v1
-      - uses: julia-actions/julia-runtest@v1
+      - uses: julia-actions/julia-buildpkg@latest
+      - uses: julia-actions/julia-runtest@latest
         env:
           AIRTABLE_KEY: $${{ secrets.AIRTABLE_KEY  }}
-      - uses: julia-actions/julia-uploadcoveralls@v1
+      - uses: julia-actions/julia-uploadcoveralls@latest
         env:
           COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
   docs:
@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/setup-julia@latest
         with:
           version: '1'
       - run: |
