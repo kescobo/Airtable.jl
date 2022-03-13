@@ -1,8 +1,6 @@
-using Airtable
-using Test
+include("AirtableTests.jl")
+AirtableTests.retest()
 
-@testset "Airtable.jl" begin
-    key = Airtable.Credential()
-    
-
-end
+# # uncomment if inline tests are used
+# using Airtable
+# Airtable.retest()
