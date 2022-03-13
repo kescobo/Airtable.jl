@@ -17,7 +17,7 @@ using [`HTTP.jl`](https://juliaweb.github.io/HTTP.jl/stable/) to do the hard stu
 No types or methods are exported,
 mostly because I didn't want to think too hard about naming them.
 
-This documentation should be used in close conjuntion with the airtable API
+This documentation should be used in close conjunction with the Airtable API
 documentation, which is generated automatically for you using your actual tables
 (see below).
 
@@ -153,11 +153,12 @@ If you want to help, let me know!
 
 ### Other functions
 
-Here are some shorthands for `GET`, `POST`, `PATCH`, and `PUT`.
+Here are some shorthands for `GET`, `POST`, `PATCH`, and `PUT`, `DELETE`.
 
 ```@docs
 get
 post
 patch
 put
+delete
 ```
