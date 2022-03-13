@@ -1,7 +1,7 @@
 name = "Airtable"
 uuid = "96f7d883-6668-4fbe-bb01-b60427b16035"
 authors = ["Kevin Bonham PhD <kevbonham@gmail.com>", "contributors"]
-version = "0.1.1"
+version = "0.2.0"
 
 [deps]
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
@@ -12,4 +12,5 @@ ReTest = "e0db7c4e-2690-44b9-bad6-7687da720f89"
 [compat]
 HTTP = "0.8, 0.9"
 JSON3 = "1"
-julia = "1.5"
+julia = "1.6"
+ReTest = "0.3"
