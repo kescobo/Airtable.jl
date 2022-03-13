@@ -11,7 +11,7 @@ using ReTest
     @test key.api_key isa String
 
 
-    @test length(Airtable.get(key, "appphImnhJO8AXmmo/Table 1").records) == 3
+    @test length(Airtable.get(key, "appphImnhJO8AXmmo/Table 1"; filterByFormula="{Keep}").records) == 3
 
     resp = Airtable.post(key, "appphImnhJO8AXmmo/Table 1", 
                              ["Content-Type" => "application/json"], 
@@ -27,12 +27,26 @@ using ReTest
         local resp = Airtable.record(key, "appphImnhJO8AXmmo", "Table 1", id)
         @test resp isa JSON3.Object
         @test resp.id == id
+        stat = resp.fields.Status
+        @test stat != "In progress"
+        @test Airtable.patch(key, "appphImnhJO8AXmmo/Table 1/$id", ["Content-Type" => "application/json"], """{"fields": {"Status": "In progress"}}""").id == id
+        @test Airtable.record(key, "appphImnhJO8AXmmo", "Table 1", id).fields.Status == "In progress"
+        @test_throws HTTP.ExceptionRequest.StatusError Airtable.patch(key, "appphImnhJO8AXmmo/Table 1/$id", ["Content-Type" => "application/json"], """{"fields": {"Status": "Not Valid"}}""")
+        @test Airtable.patch(key, "appphImnhJO8AXmmo/Table 1/$id", ["Content-Type" => "application/json"], """{"fields": {"Status": "$stat"}}""").id == id
+
         @test collect(keys(resp.fields)) == [:Name, :Notes, :Status]
         @test Airtable.delete_record(key, "appphImnhJO8AXmmo", "Table 1", id).deleted
         @test_throws HTTP.ExceptionRequest.StatusError Airtable.record(key, "appphImnhJO8AXmmo", "Table 1", id)
     end
 
-
+    # Cleanup
+    dontkeep = Airtable.get(key, "appphImnhJO8AXmmo/Table 1"; filterByFormula="NOT({Keep})").records
+    if !isempty(dontkeep)
+        sleep(1)
+        for rec in records
+            Airtable.delete_record(key, "appphImnhJO8AXmmo", "Table 1", rec.id)
+        end
+    end
 end
 
 end
