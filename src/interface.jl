@@ -1,22 +1,93 @@
+"""
+    AirBase(id::String)
+
+A wrapper for an [Airtable Base](https://support.airtable.com/hc/en-us/articles/202576419-Introduction-to-Airtable-bases),
+containing its unique identifier. 
+The ID can be identified from the URL of the base (the part right after `airtable.com`),
+or by clicking `HELP -> API documentation` from within your base.
+"""
 struct AirBase
     id::String
 end
 
+"""
+    id(::AirBase)
+
+Accessor function for a base identifier.
+"""
 id(bs::AirBase) = bs.id
+
+"""
+    path(::AirBase)
+
+Accessor function for the API path to the base.
+This is just the base ID preceded by the API version number (only `v0` for now).
+
+```jldoctest
+julia> b = AirBase("appphImnhJO8AXmmo");
+
+julia> path(b)
+"/v0/appphImnhJO8AXmmo"
+```
+"""
 path(bs::AirBase) = joinpath("/", API_VERSION, id(bs))
 Base.show(io::IO, bs::AirBase) = println(io, "Airtable Base '$(id(bs))'")
 
+"""
+    AirTable(id::String, ::AirBase)
+
+A wrapper for an [Airtable Table](https://support.airtable.com/hc/en-us/articles/360021333094-Getting-started-tables-records-and-fields),
+containing its unique identifier or name, and parent [`AirBase`](@ref). 
+"""
 struct AirTable
     id::String
     base::AirBase
 end
 
+"""
+    id(::AirTable)
+
+Accessor function for a table identifier.
+"""
 id(tab::AirTable) = tab.id
+
+"""
+    base(::AirTable)
+
+Accessor function for the parent base of a table
+"""
 base(tab::AirTable) = tab.base
+
+"""
+    path(::AirTable)
+
+Accessor function for the API path to the table.
+This is just the table ID preceded by the [path to the base](@ref `path(::AirBase)`)
+
+```jldoctest
+julia> b = AirBase("appphImnhJO8AXmmo");
+
+julia> tab = AirTable("Table 1", b);
+
+julia> path(tab)
+"/v0/appphImnhJO8AXmmo/Table 1"
+```
+"""
 path(tab::AirTable) = joinpath(path(base(tab)), id(tab))
 Base.show(io::IO, tab::AirTable) = print(io, "AirTable(\"$(id(tab))\")")
 
 
+"""
+    AirRecord(id::String, table::AirTable, fields::NamedTuple)
+
+A wrapper for an [Airtable Record](https://support.airtable.com/hc/en-us/articles/360021333094-Getting-started-tables-records-and-fields),
+containing its unique identifier, parent [`AirTable`](@ref),
+and values for any stored fields in a NamedTuple.
+
+Typically, you won't crete these on your own, but they will be returned from API queries.
+
+Field values can be accessed using [`getindex`](@ref `Base.getindex(::AirRecord, ::Symbol)`).
+"""
 struct AirRecord
     id::String
     table::AirTable
@@ -29,10 +100,42 @@ end
 
 AirRecord(; id, table, fields=Dict()) = AirRecord(id, table, fields)
 
+"""
+    id(::AirRecord)
+
+Accessor function for a record identifier.
+"""
 id(rec::AirRecord) = rec.id
+
+"""
+    table(::AirRecord)
+
+Accessor function the the parent [`AirTable`](@ref) of a record.
+"""
 table(rec::AirRecord) = rec.table
+
+"""
+    base(::AirRecord)
+
+Accessor function the the parent [`AirBase`](@ref) of a record.
+"""
 base(rec::AirRecord) = base(table(rec))
+
+"""
+    base(::AirRecord)
+
+Accessor function the the fields within an [`AirRecord`](@ref).
+Individual values can also be accessed with [`getindex`](@ref `Base.getindex(::AirRecord, ::Symbol)`).
+"""
 fields(rec::AirRecord) = rec.fields
+
+
+"""
+    path(::AirTable)
+
+Accessor function for the API path to the table.
+This is just the table ID preceded by the [path to the table](@ref `path(::AirTable)`)
+"""
 path(rec::AirRecord) = joinpath(path(table(rec)), id(rec))
 
 JSON3.write(rec::AirRecord) = string("""{ "id": "$(id(rec))", "fields": """, JSON3.write(fields(rec)), "}")
