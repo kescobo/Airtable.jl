@@ -17,8 +17,15 @@ struct Credential
     api_key::String
 end
 
-function Credential(; api_key=ENV["AIRTABLE_KEY"])
+function Credential(; api_key=Base.get(ENV, "AIRTABLE_KEY", nothing))
+    isnothing(api_key) && throw(ArgumentError("Environment does not have `$AIRTABLE_KEY` set. Must past api key directly"))
     return Credential(api_key)
 end
 
 Base.show(io::IO, ::Credential) = println(io, "Airtable.Credential(<secrets>)")
+
+@testset "Credentials" begin
+    key = Airtable.Credential()
+    @test key isa Airtable.Credential
+    @test key.api_key isa String
+end

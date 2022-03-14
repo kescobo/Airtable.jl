@@ -6,45 +6,51 @@ using Airtable.JSON3
 using ReTest
 
 @testset "Airtable.jl" begin
-    key = Airtable.Credential()
-    @test key isa Airtable.Credential
-    @test key.api_key isa String
+    @testset "Constructors" begin
+        bs = AirBase("appphImnhJO8AXmmo")
+        @test Airtable.id(bs) == "appphImnhJO8AXmmo"
+        @test Airtable.path(bs) == "/v0/appphImnhJO8AXmmo"
+        
+        tab = AirTable("Table 1", bs)
+        @test Airtable.id(tab) == "Table 1"
+        @test Airtable.path(tab) == "/v0/appphImnhJO8AXmmo/Table 1"
 
+        rec = AirRecord("some id", tab, Dict())
+        @test Airtable.id(rec) == "some id"
+        @test Airtable.path(rec) == "/v0/appphImnhJO8AXmmo/Table 1/some id"
 
-    @test length(Airtable.get(key, "appphImnhJO8AXmmo/Table 1"; filterByFormula="{Keep}").records) == 3
-
-    resp = Airtable.post(key, "appphImnhJO8AXmmo/Table 1", 
-                             ["Content-Type" => "application/json"], 
-                             JSON3.read(open("add_records.json")) |> JSON3.write)
-    
-    @test resp isa JSON3.Object
-    @test resp.records isa JSON3.Array
-    @test length(resp.records) == 2
-
-    ids = map(rec-> rec.id, resp.records)
-    for id in ids
-        sleep(1) # avoid over-taxing api
-        local resp = Airtable.record(key, "appphImnhJO8AXmmo", "Table 1", id)
-        @test resp isa JSON3.Object
-        @test resp.id == id
-        stat = resp.fields.Status
-        @test stat != "In progress"
-        @test Airtable.patch(key, "appphImnhJO8AXmmo/Table 1/$id", ["Content-Type" => "application/json"], """{"fields": {"Status": "In progress"}}""").id == id
-        @test Airtable.record(key, "appphImnhJO8AXmmo", "Table 1", id).fields.Status == "In progress"
-        @test_throws HTTP.ExceptionRequest.StatusError Airtable.patch(key, "appphImnhJO8AXmmo/Table 1/$id", ["Content-Type" => "application/json"], """{"fields": {"Status": "Not Valid"}}""")
-        @test Airtable.patch(key, "appphImnhJO8AXmmo/Table 1/$id", ["Content-Type" => "application/json"], """{"fields": {"Status": "$stat"}}""").id == id
-
-        @test collect(keys(resp.fields)) == [:Name, :Notes, :Status]
-        @test Airtable.delete_record(key, "appphImnhJO8AXmmo", "Table 1", id).deleted
-        @test_throws HTTP.ExceptionRequest.StatusError Airtable.record(key, "appphImnhJO8AXmmo", "Table 1", id)
     end
 
+    @testset "Interface" begin
+        tab = AirTable("Table 1", AirBase("appphImnhJO8AXmmo"))
+
+        @test length(Airtable.query(tab; filterByFormula="{Keep}")) == 3
+
+        resp = Airtable.post!(tab, open(joinpath(@__DIR__, "add_records.json")))
+        
+        @test resp isa Vector{AirRecord}
+        @test length(resp) == 2
+
+        for rec in resp
+            sleep(1) # avoid over-taxing api
+
+            @test rec[:Status] != "In progress"
+            @test Airtable.patch!(rec, (; Status="In progress")).id == Airtable.id(rec)
+            @test Airtable.get(rec)[:Status] == "In progress"
+            @test_throws HTTP.ExceptionRequest.StatusError Airtable.patch!(rec, (; Status="Not valid"))
+            Airtable.patch!(rec, (; Status = rec[:Status]))
+
+            @test keys(rec) == (:Name, :Notes, :Status)
+            @test Airtable.delete!(rec).deleted
+            @test_throws HTTP.ExceptionRequest.StatusError Airtable.get(rec)
+        end
+    end
     # Cleanup
-    dontkeep = Airtable.get(key, "appphImnhJO8AXmmo/Table 1"; filterByFormula="NOT({Keep})").records
+    dontkeep = Airtable.query(AirTable("Table 1", AirBase("appphImnhJO8AXmmo")); filterByFormula="NOT({Keep})")
     if !isempty(dontkeep)
         sleep(1)
-        for rec in records
-            Airtable.delete_record(key, "appphImnhJO8AXmmo", "Table 1", rec.id)
+        for rec in dontkeep
+            Airtable.delete!(rec)
         end
     end
 end

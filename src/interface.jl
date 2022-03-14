@@ -1,73 +1,42 @@
-"""
-    Airtable.request(method::AbstractString, cred::Credential, path[, headers = []]; query_kwargs...)
-
-Make a request to the Airtable API.
-
-Required arguments:
-
-- `method`: one of "GET", "PUT", "POST", or "PATCH",
-- `cred`: an [`Airtable.Credential`](@ref) containing your API key
-- `path`: This often takes the form `<base id>/<table name>` or `<base id>/<table name>/<record id>`
-
-Optional arguments:
-
-- `headers`: a vector of `Pair`s representing header arguments (the things noted in the airtable API as -H arguments).
-  Eg. `["Content-Type" => "application/json"]`
-
-Query parameters are in the form of keyword arguments,
-eg `filterByFormla = "NOT({Name} = '')", maxRecords=2`.
-See [Airtable API](https://airtable.com/api) reference for more information.
-"""
-function request(method::AbstractString, cred::Credential, path, headers=[], body=nothing; query_kwargs...)
-    method in ("GET", "PUT", "POST", "PATCH", "DELETE") || error("Invalid API method: $method")
-    
-    headers = append!(["Authorization"=> "Bearer $(cred.api_key)"], headers)
-    query = []
-    for (key, value) in query_kwargs
-        isempty(value) && continue
-        push!(query, string(key) => string(value))
-    end
-    path = joinpath("/", API_VERSION, joinpath(HTTP.escapeuri.(splitpath(path))))
-    uri = HTTP.URI(; host="api.airtable.com", scheme="https", path, query)
-    resp = isnothing(body) ? HTTP.request(method, uri, headers) : 
-                             HTTP.request(method, uri, headers, body)
-    return JSON3.read(String(resp.body))
+struct AirBase
+    id::String
 end
 
-"""
-    Airtable.get(cred::Credential, path[, headers=[], body=nothing]; query_kwargs...)
+id(bs::AirBase) = bs.id
+path(bs::AirBase) = joinpath("/", API_VERSION, id(bs))
+Base.show(io::IO, bs::AirBase) = println(io, "Airtable Base '$(id(bs))'")
 
-Shorthand for [`Airtable.request("GET", cred, path[, headers, body]; query_kwargs)`](@ref Airtable.request)
-"""
-get(cred::Credential, path, headers=[], body=nothing; query_kwargs...) = request("GET", cred, path, headers, body; query_kwargs...)
+struct AirTable
+    id::String
+    base::AirBase
+end
 
-"""
-    Airtable.put(cred::Credential, path[, headers=[], body=nothing]; query_kwargs...)
+id(tab::AirTable) = tab.id
+base(tab::AirTable) = tab.base
+path(tab::AirTable) = joinpath(path(base(tab)), id(tab))
+Base.show(io::IO, tab::AirTable) = print(io, "AirTable(\"$(id(tab))\")")
 
-Shorthand for [`Airtable.request("PUT", cred, path[, headers, body]; query_kwargs)`](@ref Airtable.request)
-"""
-put(cred::Credential, path, headers=[], body=nothing; query_kwargs...) = request("PUT", cred, path, headers, body; query_kwargs...)
 
-"""
-    Airtable.post(cred::Credential, path[, headers=[], body=nothing]; query_kwargs...)
+struct AirRecord
+    id::String
+    table::AirTable
+    fields::NamedTuple
 
-Shorthand for [`Airtable.request("POST", cred, path[, headers, body]; query_kwargs)`](@ref Airtable.request)
-"""
-post(cred::Credential, path, headers=[], body=nothing; query_kwargs...) = request("POST", cred, path, headers, body; query_kwargs...)
+    function AirRecord(id, table, fields)
+        new(id, table, NamedTuple(fields))
+    end
+end
 
-"""
-    Airtable.patch(cred::Credential, path[, headers=[], body=nothing]; query_kwargs...)
+AirRecord(; id, table, fields=Dict()) = AirRecord(id, table, fields)
 
-Shorthand for [`Airtable.request("PATCH", cred, path[, headers, body]; query_kwargs)`](@ref Airtable.request)
-"""
-patch(cred::Credential, path, headers=[], body=nothing; query_kwargs...) = request("PATCH", cred, path, headers, body; query_kwargs...)
+id(rec::AirRecord) = rec.id
+table(rec::AirRecord) = rec.table
+base(rec::AirRecord) = base(table(rec))
+fields(rec::AirRecord) = rec.fields
+path(rec::AirRecord) = joinpath(path(table(rec)), id(rec))
 
-"""
-    Airtable.delete(cred::Credential, path[, headers=[], body=nothing]; query_kwargs...)
-
-Shorthand for [`Airtable.request("DELETE", cred, path[, headers, body]; query_kwargs)`](@ref Airtable.request)
-"""
-delete(cred::Credential, path, headers=[], body=nothing; query_kwargs...) = request("DELETE", cred, path, headers, body; query_kwargs...)
+JSON3.write(rec::AirRecord) = string("""{ "id": "$(id(rec))", "fields": """, JSON3.write(fields(rec)), "}")
+AirRecord(rec::JSON3.Object, tab::AirTable) = AirRecord(rec.id, tab, rec.fields)
 
 """
     Airtable.query(cred::Credential, baseid, tablename; query_kwargs...)
@@ -93,25 +62,41 @@ See Airtable API reference for more information.
 If you know the exact record id, pass that as a fourth positional argument
 """
 function query(cred::Credential, baseid, tablename; query_kwargs...)
-    path = joinpath(baseid, tablename)
-    req = get(cred, path; query_kwargs...)
-    records = Any[req.records...]
-    append!(records, req.records)
-    while haskey(req, :offset)
-        @info "Making another request with offset $(req.offset)"
-        req = get(cred, path; offset=req.offset, query_kwargs...)
-        append!(records, req.records)
+    tab = AirTable(tablename, AirBase(baseid))
+    resp = get(cred, path(tab); query_kwargs...)
+    records = map(rec-> AirRecord(rec.id, tab, rec.fields), resp.records)
+
+    while haskey(resp, :offset)
+        @info "Making another request with offset $(resp.offset)"
+        resp = get(cred, path(tab); offset=resp.offset, query_kwargs...)
+        append!(records, map(rec-> AirRecord(rec.id, tab, rec.fields), resp.records))
         sleep(0.210)
     end
     return records
 end
 
-function record(cred, baseid, tablename, record)
-    path = joinpath(baseid, tablename, record)
-    return get(cred, path)
-end
+query(cred::Credential, tab::AirTable; query_kwargs...) = query(cred, id(base(tab)), id(tab); query_kwargs...)
+query(tab::AirTable; query_kwargs...) = query(Credential(), tab; query_kwargs...)
 
-function delete_record(cred, baseid, tablename, record)
-    path = joinpath(baseid, tablename, record)
-    return delete(cred, path)
-end
+get(cred::Credential, rec::AirRecord) = AirRecord(get(cred, path(rec)), table(rec))
+get(rec::AirRecord) = get(Credential(), rec)
+
+
+post!(cred::Credential, tab::AirTable, rec::AirRecord) = post!(cred, path(tab), ["Content-Type" => "application/json"], JSON3.write(rec))
+post!(cred::Credential, tab::AirTable, recs::IO) = post!(cred, path(tab), ["Content-Type" => "application/json"], JSON3.write(JSON3.read(recs)))
+
+post!(tab::AirTable, rec::AirRecord) = records(tab, post!(Credential(), path(tab), ["Content-Type" => "application/json"], JSON3.write(rec)).records)
+post!(tab::AirTable, recs::IO) = records(tab, post!(Credential(), path(tab), ["Content-Type" => "application/json"], JSON3.write(JSON3.read(recs))).records)
+
+delete!(cred::Credential, rec::AirRecord) = delete!(cred, path(rec))
+delete!(rec::AirRecord) = delete!(Credential(), rec)
+
+patch!(cred::Credential, rec::AirRecord) = patch!(cred, path(rec), ["Content-Type" => "application/json"], JSON3.write(rec))
+patch!(rec::AirRecord) = patch!(Credential(), rec)
+patch!(cred::Credential, rec::AirRecord, fields::NamedTuple) = patch!(cred, path(rec), ["Content-Type" => "application/json"], string("""{ "fields": """, JSON3.write(fields), " }"))
+patch!(rec::AirRecord, fields::NamedTuple) = patch!(Credential(), rec, fields)
+
+records(tab::AirTable, resp::JSON3.Array) = map(resp-> AirRecord(resp.id, tab, resp.fields), resp)
+
+Base.getindex(rec::AirRecord, k::Symbol) = fields(rec)[k]
+Base.keys(rec::AirRecord) = keys(fields(rec))
