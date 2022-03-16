@@ -64,46 +64,10 @@ with a different alphanumeric sequence for your base:
 It will also appear in the url of the base documentation.
 For example, the `Test` base for this repo has the url `https://airtable.com/appphImnhJO8AXmmo/api/docs`.
 
+
+
 ### Tablename
 
 Within each base, you may have multiple tables.
 The `tablename` argument in the following functions is just a string
 with the table name, eg `"Table 1"`.
-
-### [API Query](@id apiquery)
-
-Use keyword arguments to add commponents to the API request body.
-For example, if you want a `GET` request to only contain the `Name` field,
-you could include `; fields=["Name"]` keyword argument to the [`Airtable.get`](@ref)
-function.
-
-### Retrieving lots of records
-
-The airtable API will only return 100 records per request[^1],
-and only allows 5 requests/sec.
-To facilitate retrieving lots of records,
-You can use the [`Airtable.query`](@ref) function.
-
-```@docs
-query
-```
-
-[^1]: This is the default, you can change this with the `pageSize` parameter,
-      but 100 is the maximum.
-
-### Add/Update Records
-
-I haven't actually figured this out yet 🤔.
-If you want to help, let me know!
-
-### Other functions
-
-Here are some shorthands for `GET`, `POST`, `PATCH`, and `PUT`, `DELETE`.
-
-```@docs
-get
-post!
-patch!
-put!
-delete!
-```

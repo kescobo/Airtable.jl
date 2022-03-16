@@ -1,4 +1,4 @@
-# Low-level interface
+# [Low-level interface](@id lowlevel)
 
 `Airtable.jl` has wrappers around several of the functions from `HTTP.jl`.
 These are intended to work approximately the same way,
@@ -112,4 +112,16 @@ julia> records = (; records = [
 julia> body = JSON3.write(records);
 
 julia> Airtable.request("POST", key, "appphImnhJO8AXmmo/Table 1", ["Content-Type" => "application/json"], body)
+```
+
+### Other functions
+
+Here are some shorthands for `GET`, `POST`, `PATCH`, and `PUT`, `DELETE`.
+
+```@docs
+get
+post!
+patch!
+put!
+delete!
 ```
