@@ -150,3 +150,15 @@ JSON3.Object{Base.CodeUnits{UInt8, String}, Vector{UInt64}} with 2 entries:
 Airtable.com only allows 5 requests / min.
 The `query` function handles that automatically,
 but other functions do not (yet).
+
+## Functions and Types
+
+```@docs
+AirBase
+AirTable
+AirRecord
+Airtable.query
+Airtable.post!
+Airtable.patch!
+Airtable.delete!
+```
