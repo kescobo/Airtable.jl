@@ -147,9 +147,9 @@ JSON3.Object{Base.CodeUnits{UInt8, String}, Vector{UInt64}} with 2 entries:
 
 ## [A note on rate limits](@id ratelimit)
 
-Airtable.com only allows 5 requests / min.
-The `query` function handles that automatically,
-but other functions do not (yet).
+Airtable.com only allows 5 requests / sec.
+All functions that make requests will pause
+if more than 5 requests have been made in the previous second.
 
 ## Functions and Types
 
