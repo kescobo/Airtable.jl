@@ -1,0 +1,18 @@
+{
+    "records": [
+      {
+        "fields": {
+          "Name": "TEST1",
+          "Notes": "Some note",
+          "Status": "Todo"
+        }
+      },
+      {
+        "fields": {
+          "Name": "TEST2",
+          "Notes": "Other note",
+          "Status": "Done"
+        }
+      }
+    ]
+  }
