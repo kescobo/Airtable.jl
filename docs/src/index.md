@@ -6,10 +6,6 @@ CurrentModule = Airtable
 
 An (unofficial) API for interacting with the [Airtable](http://www.airtable.com) API.
 
-```@index
-Order   = [:type, :function]
-```
-
 ## Using this package
 
 This package is wrapper for the Airtable REST API,

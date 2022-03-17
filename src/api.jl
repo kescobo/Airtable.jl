@@ -29,6 +29,8 @@ function request(method::AbstractString, cred::Credential, path::AbstractString,
     end
     path = joinpath("/", HTTP.escapeuri.(splitpath(lstrip(path, '/')))...)
     uri = HTTP.URI(; host="api.airtable.com", scheme="https", path, query)
+
+    _ratelimit!(_ratelimiter)
     resp = isnothing(body) ? HTTP.request(method, uri, headers) : 
                              HTTP.request(method, uri, headers, body)
     return JSON3.read(String(resp.body))
