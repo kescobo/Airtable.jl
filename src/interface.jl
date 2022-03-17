@@ -184,22 +184,46 @@ query(tab::AirTable; query_kwargs...) = query(Credential(), tab; query_kwargs...
 get(cred::Credential, rec::AirRecord) = AirRecord(get(cred, path(rec)), table(rec))
 get(rec::AirRecord) = get(Credential(), rec)
 
+_extract_records(tab::AirTable, resp) = map(rec-> AirRecord(rec.id, tab, rec.fields), resp.records)
+_extract_record(tab::AirTable, rec) = AirRecord(rec.id, tab, rec.fields)
 
-post!(cred::Credential, tab::AirTable, rec::AirRecord) = post!(cred, path(tab), ["Content-Type" => "application/json"], JSON3.write(rec))
-post!(cred::Credential, tab::AirTable, recs::IO) = post!(cred, path(tab), ["Content-Type" => "application/json"], JSON3.write(JSON3.read(recs)))
+function post!(cred::Credential, tab::AirTable, rec::AirRecord)
+    resp = post!(cred, path(tab), ["Content-Type" => "application/json"], JSON3.write(rec))
+    return _extract_record(tab, resp)
+end
 
-post!(tab::AirTable, rec::AirRecord) = records(tab, post!(Credential(), path(tab), ["Content-Type" => "application/json"], JSON3.write(rec)).records)
-post!(tab::AirTable, recs::IO) = records(tab, post!(Credential(), path(tab), ["Content-Type" => "application/json"], JSON3.write(JSON3.read(recs))).records)
+function post!(cred::Credential, tab::AirTable, recs::IO)
+    resp = post!(cred, path(tab), ["Content-Type" => "application/json"], JSON3.write(JSON3.read(recs)))
+    return _extract_records(tab, resp)
+end
+
+function post!(cred::Credential, tab::AirTable, rec::NamedTuple)
+    resp = post!(cred, path(tab), ["Content-Type" => "application/json"], JSON3.write((; fields=rec)))
+    return _extract_record(tab, resp)
+end
+
+
+function post!(cred::Credential, tab::AirTable, recs::Vector{<:NamedTuple})
+    recs = (;records = [(; fields = nt) for nt in recs])
+    resp = post!(cred, path(tab), ["Content-Type" => "application/json"], JSON3.write(recs))
+
+    return _extract_records(tab, resp)
+end
+
+post!(tab::AirTable, rec::AirRecord)           = post!(Credential(), tab, rec)
+post!(tab::AirTable, recs::IO)                 = post!(Credential(), tab, recs)
+post!(tab::AirTable, rec::NamedTuple)          = post!(Credential(), tab, rec)
+post!(tab::AirTable, recs::Vector{<:NamedTuple}) = post!(Credential(), tab, recs)
 
 delete!(cred::Credential, rec::AirRecord) = delete!(cred, path(rec))
 delete!(rec::AirRecord) = delete!(Credential(), rec)
 
-patch!(cred::Credential, rec::AirRecord) = patch!(cred, path(rec), ["Content-Type" => "application/json"], JSON3.write(rec))
+patch!(cred::Credential, rec::AirRecord) = _extract_record(table(rec), patch!(cred, path(rec), ["Content-Type" => "application/json"], JSON3.write(rec)))
 patch!(rec::AirRecord) = patch!(Credential(), rec)
-patch!(cred::Credential, rec::AirRecord, fields::NamedTuple) = patch!(cred, path(rec), ["Content-Type" => "application/json"], string("""{ "fields": """, JSON3.write(fields), " }"))
+patch!(cred::Credential, rec::AirRecord, fields::NamedTuple) = _extract_record(table(rec), patch!(cred, path(rec), ["Content-Type" => "application/json"], string("""{ "fields": """, JSON3.write(fields), " }")))
 patch!(rec::AirRecord, fields::NamedTuple) = patch!(Credential(), rec, fields)
-
-records(tab::AirTable, resp::JSON3.Array) = map(resp-> AirRecord(resp.id, tab, resp.fields), resp)
 
 Base.getindex(rec::AirRecord, k::Symbol) = fields(rec)[k]
 Base.keys(rec::AirRecord) = keys(fields(rec))
+Base.haskey(rec::AirRecord, key::Symbol) = key ∈ keys(rec)
+Base.get(rec::AirRecord, key, default) = haskey(rec, key) ? rec[key] : default
