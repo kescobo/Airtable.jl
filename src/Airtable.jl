@@ -8,7 +8,6 @@ export AirBase,
 using Dates
 using HTTP
 using JSON3
-using Tables
 using ReTest
 
 const API_VERSION = "v0"
