@@ -8,6 +8,7 @@ export AirBase,
 using Dates
 using HTTP
 using JSON3
+using ProgressMeter
 using ReTest
 
 const API_VERSION = "v0"
