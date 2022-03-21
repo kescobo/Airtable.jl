@@ -1,7 +1,7 @@
 name = "Airtable"
 uuid = "96f7d883-6668-4fbe-bb01-b60427b16035"
 authors = ["Kevin Bonham PhD <kevbonham@gmail.com>", "contributors"]
-version = "0.2.1"
+version = "0.2.2"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"

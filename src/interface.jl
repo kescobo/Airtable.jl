@@ -172,7 +172,7 @@ function query(cred::Credential, baseid, tablename; query_kwargs...)
     if haskey(resp, :offset)
         prog = ProgressUnknown("Making additional requests:", spinner=true)
         while haskey(resp, :offset)
-            ProgressMeter.next!(prog, spinner=true)
+            ProgressMeter.next!(prog)
             resp = get(cred, path(tab); offset=resp.offset, query_kwargs...)
             append!(records, map(rec-> AirRecord(rec.id, tab, rec.fields), resp.records))
         end

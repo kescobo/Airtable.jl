@@ -4,5 +4,3 @@
 Manifest.toml
 /docs/build/
 .vscode
-.envrc
-scratch.*
