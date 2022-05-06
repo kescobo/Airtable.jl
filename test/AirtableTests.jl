@@ -44,6 +44,10 @@ using ReTest
             @test Airtable.delete!(rec).deleted
             @test_throws HTTP.ExceptionRequest.StatusError Airtable.get(rec)
         end
+        resp = Airtable.post!(tab, open(joinpath(@__DIR__, "add_records.json")))
+        Airtable.patch!(tab, resp, [(; Status="In progress") for _ in 1:length(resp)])
+        @test all([Airtable.get(rec)[:Status] == "In progress" for rec in resp])
+
     end
     # Cleanup
     dontkeep = Airtable.query(AirTable("Table 1", AirBase("appphImnhJO8AXmmo")); filterByFormula="NOT({Keep})")
