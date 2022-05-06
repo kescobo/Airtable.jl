@@ -5,3 +5,4 @@ Manifest.toml
 /docs/build/
 .vscode
 .envrc
+test/add_records.json

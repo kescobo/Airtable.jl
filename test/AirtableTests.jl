@@ -30,8 +30,18 @@ const CI_STRING = randstring()
 
         @test length(Airtable.query(tab; filterByFormula="{Keep}")) == 3
 
-        resp = Airtable.post!(tab, open(joinpath(@__DIR__, "add_records.json")))
-        
+        toadd = [
+            (; Name   = "TEST1",
+               Notes  = "Some note",
+               Status = "Todo",
+               CI     = CI_STRING),  
+            (; Name   = "TEST2",
+               Notes  = "Other note",
+               Status = "Done",
+               CI     = CI_STRING) 
+        ]
+
+        resp = Airtable.post!(tab, toadd)
         @test resp isa Vector{AirRecord}
         @test length(resp) == 2
 
@@ -41,20 +51,24 @@ const CI_STRING = randstring()
             @test rec[:Status] != "In progress"
             @test Airtable.patch!(rec, (; Status="In progress", CI=CI_STRING)).id == Airtable.id(rec)
             @test Airtable.get(rec)[:Status] == "In progress"
+
             @test_throws HTTP.ExceptionRequest.StatusError Airtable.patch!(rec, (; Status="Not valid"))
             Airtable.patch!(rec, (; Status = rec[:Status]))
 
-            @test keys(rec) == (:Name, :Notes, :Status)
+            @test keys(rec) == (:Name, :Notes, :Status, :CI)
             @test Airtable.delete!(rec).deleted
             @test_throws HTTP.ExceptionRequest.StatusError Airtable.get(rec)
         end
-        resp = Airtable.post!(tab, open(joinpath(@__DIR__, "add_records.json")))
+
+        JSON3.write("add_records.json", (; records = [(; fields = rec) for rec in toadd]))
+        resp = Airtable.post!(tab, open("add_records.json"))
+
         Airtable.patch!(tab, resp, [(; Status="In progress", CI=CI_STRING) for _ in 1:length(resp)])
         @test all([Airtable.get(rec)[:Status] == "In progress" for rec in resp])
 
     end
     # Cleanup
-    dontkeep = Airtable.query(AirTable("Table 1", AirBase("appphImnhJO8AXmmo")); filterByFormula="AND({CI String}='$CI_STRING', NOT({Keep}))")
+    dontkeep = Airtable.query(AirTable("Table 1", AirBase("appphImnhJO8AXmmo")); filterByFormula="AND({CI}='$CI_STRING', NOT({Keep}))")
     if !isempty(dontkeep)
         sleep(1)
         for rec in dontkeep
