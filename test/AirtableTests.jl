@@ -4,6 +4,10 @@ using Airtable
 using Airtable.HTTP
 using Airtable.JSON3
 using ReTest
+using Random
+
+const CI_STRING = randstring()
+
 
 @testset "Airtable.jl" begin
     @testset "Constructors" begin
@@ -35,7 +39,7 @@ using ReTest
             sleep(1) # avoid over-taxing api
 
             @test rec[:Status] != "In progress"
-            @test Airtable.patch!(rec, (; Status="In progress")).id == Airtable.id(rec)
+            @test Airtable.patch!(rec, (; Status="In progress", CI=CI_STRING)).id == Airtable.id(rec)
             @test Airtable.get(rec)[:Status] == "In progress"
             @test_throws HTTP.ExceptionRequest.StatusError Airtable.patch!(rec, (; Status="Not valid"))
             Airtable.patch!(rec, (; Status = rec[:Status]))
@@ -45,12 +49,12 @@ using ReTest
             @test_throws HTTP.ExceptionRequest.StatusError Airtable.get(rec)
         end
         resp = Airtable.post!(tab, open(joinpath(@__DIR__, "add_records.json")))
-        Airtable.patch!(tab, resp, [(; Status="In progress") for _ in 1:length(resp)])
+        Airtable.patch!(tab, resp, [(; Status="In progress", CI=CI_STRING) for _ in 1:length(resp)])
         @test all([Airtable.get(rec)[:Status] == "In progress" for rec in resp])
 
     end
     # Cleanup
-    dontkeep = Airtable.query(AirTable("Table 1", AirBase("appphImnhJO8AXmmo")); filterByFormula="NOT({Keep})")
+    dontkeep = Airtable.query(AirTable("Table 1", AirBase("appphImnhJO8AXmmo")); filterByFormula="AND({CI String}='$CI_STRING', NOT({Keep}))")
     if !isempty(dontkeep)
         sleep(1)
         for rec in dontkeep
