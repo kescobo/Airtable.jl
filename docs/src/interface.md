@@ -105,7 +105,8 @@ AirRecord("recYvPIayZx1okJ41", AirTable("Table 1"), (Name = "Some Record", Notes
 
 Notice that the return value is an [`AirRecord`](@ref).
 It can be useful to hold onto this, since it contains the unique identifier.
-You can also pass a vector of `NamedTuple`s to create multiple records.
+You can also pass a vector of `NamedTuple`s to create multiple records
+(`post!` will automatically limit 10 records at a time, in compliance with the Airtable API).
 
 See the [note about rate limits](@ref ratelimit).
 
@@ -128,6 +129,10 @@ julia> Airtable.patch!(new_rec, (; Status="Done", Notes=missing))
 AirRecord("recYvPIayZx1okJ41", AirTable("Table 1"), (Name = "Some Record", Status = "Done"))
 ```
 
+You can also pass a vector of `AirRecords`
+along with an equal-length vector of `NamedTuple`s to patch multiple records at once
+(`patch!` will automatically limit to 10 records at a time, in compliance with the Airtable API).
+
 ### Using `delete!`
 
 To remove a record, simply pass an `AirRecord` with the same `id` to [`delete!`](@ref).
@@ -141,9 +146,6 @@ JSON3.Object{Base.CodeUnits{UInt8, String}, Vector{UInt64}} with 2 entries:
 
 [^1]: This is the default, you can change this with the `pageSize` parameter,
       but 100 is the maximum.
-
-### Add/update records
-
 
 ## [A note on rate limits](@id ratelimit)
 
