@@ -208,10 +208,13 @@ end
 
 
 function post!(cred::Credential, tab::AirTable, recs::Vector{<:NamedTuple})
-    recs = (;records = [(; fields = nt) for nt in recs])
-    resp = post!(cred, path(tab), ["Content-Type" => "application/json"], JSON3.write(recs))
-
-    return _extract_records(tab, resp)
+    resps = AirRecord[]
+    for recpart in Iterators.partition(recs, 10)
+        topost = (; records = [(; fields = nt) for nt in recpart])
+        resp = post!(cred, path(tab), ["Content-Type" => "application/json"], JSON3.write(topost))
+        append!(resps, _extract_records(tab, resp))
+    end
+    return resps
 end
 
 post!(tab::AirTable, rec::AirRecord)           = post!(Credential(), tab, rec)
@@ -223,9 +226,30 @@ delete!(cred::Credential, rec::AirRecord) = delete!(cred, path(rec))
 delete!(rec::AirRecord) = delete!(Credential(), rec)
 
 patch!(cred::Credential, rec::AirRecord) = _extract_record(table(rec), patch!(cred, path(rec), ["Content-Type" => "application/json"], JSON3.write(rec)))
+patch!(cred::Credential, rec::AirRecord, fields::NamedTuple) = _extract_record(table(rec), patch!(cred, path(rec), ["Content-Type" => "application/json"],  JSON3.write((; fields))))
+
+function patch!(cred::Credential, tab::AirTable, recs::Vector{<:AirRecord})
+    resps = AirRecord[]
+    for recpart in Iterators.partition(recs, 10)
+        resp = patch!(cred, path(tab), ["Content-Type" => "application/json"], JSON3.write((; records = [
+            (; id=id(rec), fields=fields(rec)) for rec in recpart
+        ])))
+        append!(resps, _extract_records(tab, resp))
+    end
+    return resps
+end
+
+function patch!(cred::Credential, tab::AirTable, recs::Vector{<:AirRecord}, fields::Vector{<:NamedTuple})
+    length(recs) == length(fields) || throw(ArgumentError("Lengths of records vector and fields vector must be the same"))
+    patch!(cred, tab, [AirRecord(Airtable.id(rec), tab, fs) for (rec, fs) in zip(recs, fields)])
+end
+
+
 patch!(rec::AirRecord) = patch!(Credential(), rec)
-patch!(cred::Credential, rec::AirRecord, fields::NamedTuple) = _extract_record(table(rec), patch!(cred, path(rec), ["Content-Type" => "application/json"], string("""{ "fields": """, JSON3.write(fields), " }")))
 patch!(rec::AirRecord, fields::NamedTuple) = patch!(Credential(), rec, fields)
+patch!(tab::AirTable, recs::Vector{<:AirRecord}) = patch!(Credential(), tab, recs)
+patch!(tab::AirTable, recs::Vector{<:AirRecord}, fields::Vector{<:NamedTuple}) = patch!(Credential(), tab, recs, fields)
+
 
 Base.getindex(rec::AirRecord, k::Symbol) = fields(rec)[k]
 Base.keys(rec::AirRecord) = keys(fields(rec))
