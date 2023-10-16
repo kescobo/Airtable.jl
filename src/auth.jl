@@ -3,40 +3,34 @@
      
 A credential object for Airtable.
 If the api_key or api_token are not provided,
-they will be read from the `AIRTABLE_KEY` environment variable.
-Go to [Airtable account settings](https://airtable.com/account) 
-to aquire your credentials.
+they will be read from, 
+
+1. the Preferences key "readwrite_pat"
+2. the Preferences key "readonly_pat"
+3. the `AIRTABLE_KEY` environment variable.
+
+Read the [Airtable docs](https://airtable.com/create/tokens)
+for more info on personal access tokens,
+or go to [Airtable account settings](https://airtable.com/create/tokens) 
+to aquire your personal access token(s).
 
 ```jldoctest; setup = :(using Airtable)
-# after running `export AIRTABLE_KEY=<api key>` in the shell
+# with local preferences set, or after running `export AIRTABLE_KEY=<api key>` in the shell
 julia> key = Airtable.Credential()
 Airtable.Credential(<secrets>)
 ```
+
+See also
+
+- [`load_preference`]@ref
 """
 struct Credential
     api_key::String
 end
 
-load_preference(pref::AbstractString, default=nothing) = @load_preference(pref, default)
-set_readwrite!(pat::AbstractString) = @set_preferences!("readwrite_pat"=> pat)
-set_readonly!(pat::AbstractString) = @set_preferences!("readonly_pat"=> pat)
 
-function set_readwrite!()
-    print("Enter Read/Write Personal Access Token: ")
-    pat = readline()
-    set_readwrite!(pat)
-    println("Set!")
-end
-function set_readonly!()
-    print("Enter Read-only Personal Access Token: ")
-    pat = readline()
-    set_readonly!(pat)
-    println("Set!")
-end
-
-
-function Credential(; api_key = load_preference("readwrite_pat",
-                                load_preference("readonly_pat", 
+function Credential(; api_key = @load_preference("readwrite_pat",
+                                @load_preference("readonly_pat", 
                                 Base.get(ENV, "AIRTABLE_KEY", nothing))))
     isnothing(api_key) && throw(ArgumentError("Environment does not have personal access token set. Must past api key directly"))
     return Credential(api_key)
