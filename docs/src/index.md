@@ -27,25 +27,80 @@ you should understand a few of the terms Airtable uses:
 4. A "Field" (a column of a table) is a named and typed datapoint.
    When fields are missing for a given record, they are typically not included in API responses.
 
-All API operations also require that you provide authorization in the form of an API key.
+All API operations also require that you provide authorization in the form of a
+personal access token (PAT).
 
-### [API key](@id apikey)
+### [Personal Access Tokens (PATs)](@id apikey)
 
-To obtain your API key, go to your [account settings page](https://airtable.com/account)
-and click on the "generate API key" button.
-If you previously made a key, you can regenerate it, or just copy the one that's there.
+!!! warning "Personal Access Token"
+   Previous versions of this documentation used API keys,
+   which are being phased out.
+   You should now use Personal Access Tokens.
+   [See here](https://support.airtable.com/docs/airtable-api-key-deprecation-notice) for more info.
+   
 
-![Get airtable API key](img/api-key.png)
+To obtain your, go to the [create tokens](https://airtable.com/create/tokens) page,
+then click "create new token".
 
-You can then create an [`Airtable.Credential`](@ref) using that key as a string,
-or set it as an environmental variable (`AIRTABLE_KEY` by default).
+![Get airtable Personal Access Token](img/create.png)
+
+Give your token a name,
+then provide the required scopes (eg ability to read or write records)
+and access (you can provide access to only a single base, or a whole workspace).
+
+![Provide permissions](img/scope.png)
+
+![Provide permissions](img/access.png)
+
+!!! note
+   Once you click "done", you will not be able to retrieve your PAT.
+   Be sure to put it in a secure place,
+   or you will have to go through this process again.
+
+To use any of this packages features, you will need to use an [`Airtable.Credential`](@ref).
+This can be done explicitly by passing a PAT as a string to the `Credential()` constructor
+(the PAT shown here has read-only access to the test table used by this package).
+
+```julia-repl
+julia> cred = Airtable.Credential("patfh3gwMkFASf6Ue.0103ff9d0148e6b573582e513a7f1dcb76300e52b67463c99d9c499f46f9fa98")
+Airtable.Credential(<secrets>)
+
+julia> Airtable.get(cred, #...)
+```
+
+Alternatively,
+you can use `Preferences.jl` to set
+`"readonly_pat"` or `"readwrite_pat"`,
+or set the environmental variable `"AIRTABLE_KEY"`.
+
+Eg.
+
+```julia-repl
+using Preferences
+
+julia> set_preferences!(Airtable, "readwrite_pat"=>"<REDACTED>")
+
+julia> julia> cred = Airtable.Credential()
+Airtable.Credential(<secrets>)
+```
+
+!!! compat
+   The use of `AIRTABLE_KEY` environment variable is maintained
+   for backward compatibility, but
+   using `Preferences` is recommended.   
+
+
+The empty constructor is passed by default to all API functions,
+and will use (in order)
+
+1. "readwrite_pat" set in `Preferences`
+2. "readonly_pat" set in `Preferences`
+3. the environmental variable `AIRTABLE_KEY`
 
 ```@docs
 Credential
 ```
 
-It is recommended that you use the environmental variable,
-since many functions can use that by default instead of requiring that you pass it as an argument.
 
 ### [Base ID](@id baseid)
 
