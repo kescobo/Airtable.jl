@@ -23,7 +23,7 @@ id(bs::AirBase) = bs.id
 Accessor function for the API path to the base.
 This is just the base ID preceded by the API version number (only `v0` for now).
 
-```jldoctest
+```jldoctest; setup = :(using Airtable)
 julia> b = AirBase("appphImnhJO8AXmmo");
 
 julia> path(b)
@@ -64,7 +64,7 @@ base(tab::AirTable) = tab.base
 Accessor function for the API path to the table.
 This is just the table ID preceded by the [path to the base](@ref `path(::AirBase)`)
 
-```jldoctest
+```jldoctest; setup = :(using Airtable)
 julia> b = AirBase("appphImnhJO8AXmmo");
 
 julia> tab = AirTable("Table 1", b);
