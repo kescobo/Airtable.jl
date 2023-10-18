@@ -21,7 +21,7 @@ See [Airtable API](https://airtable.com/api) reference for more information.
 function request(method::AbstractString, cred::Credential, path::AbstractString, headers=[], body=nothing; query_kwargs...)
     method in ("GET", "PUT", "POST", "PATCH", "DELETE") || error("Invalid API method: $method")
     
-    headers = append!(["Authorization"=> "Bearer $(cred.api_key)"], headers)
+    headers = append!(["Authorization"=> "Bearer $(cred.token)"], headers)
     query = []
     for (key, value) in query_kwargs
         isempty(value) && continue

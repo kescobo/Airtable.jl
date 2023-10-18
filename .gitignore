@@ -6,3 +6,4 @@ Manifest.toml
 .vscode
 .envrc
 test/add_records.json
+LocalPreferences.toml

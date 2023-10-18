@@ -8,6 +8,7 @@ export AirBase,
 using Dates
 using HTTP
 using JSON3
+using Preferences: @load_preference, @set_preferences!
 using ProgressMeter
 using ReTest
 

@@ -1,3 +1,7 @@
+```@meta
+CurrentModule = Airtable
+```
+
 # [Low-level interface](@id lowlevel)
 
 `Airtable.jl` has wrappers around several of the functions from `HTTP.jl`.
@@ -124,4 +128,10 @@ post!
 patch!
 put!
 delete!
+id
+base
+table
+path(::AirBase)
+fields
 ```
+
