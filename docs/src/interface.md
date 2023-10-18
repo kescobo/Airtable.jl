@@ -1,3 +1,7 @@
+```@meta
+CurrentModule = Airtable
+```
+
 # Interface
 
 A number of functions have been added to make it a bit easier
@@ -152,15 +156,3 @@ JSON3.Object{Base.CodeUnits{UInt8, String}, Vector{UInt64}} with 2 entries:
 Airtable.com only allows 5 requests / sec.
 All functions that make requests will pause
 if more than 5 requests have been made in the previous second.
-
-## Functions and Types
-
-```@docs
-AirBase
-AirTable
-AirRecord
-Airtable.query
-Airtable.post!
-Airtable.patch!
-Airtable.delete!
-```
